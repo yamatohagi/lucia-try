@@ -16,7 +16,7 @@ app.get("/user", async (c) => {
 });
 
 app.get("/login/github", async (c) => {
-  console.log("login githubAuthgithubAuthgithubAuthgithubAuthgithubAuth",githubAuth)
+	const redirect_uri = c.req.query("redirect_uri");
 	const [authorizationUrl, state] = await githubAuth.getAuthorizationUrl();
 	setCookie(c, "github_oauth_state", state, {
 		path: "/",
@@ -24,10 +24,13 @@ app.get("/login/github", async (c) => {
 		httpOnly: true,
 		secure: process.env.NODE_ENV === "production"
 	});
+	console.log("redirect_uri", redirect_uri);
+	//	return c.redirect(`${authorizationUrl.toString()}?redirect_uri=${redirect_uri}`);
 	return c.redirect(authorizationUrl.toString());
 });
 
 app.get("/login/github/callback", async (c) => {
+	console.log(c.req.url);
 	const url = new URL(c.req.url);
 	const code = url.searchParams.get("code");
 	if (!code) return c.newResponse(null, 400);
@@ -53,7 +56,7 @@ app.get("/login/github/callback", async (c) => {
 		});
 		return c.redirect(
 			// change this part before starting your server
-			`exp://192.168.2.100:8081/login?session_token=${session.sessionId}`
+			`exp://10.20.1.34:8081/login?session_token=${session.sessionId}`
 		);
 	} catch (e) {
 		console.log(e);

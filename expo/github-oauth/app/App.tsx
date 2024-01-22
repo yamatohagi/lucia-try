@@ -1,21 +1,31 @@
 import { StatusBar } from "expo-status-bar";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { Button, Platform, StyleSheet, Text, View } from "react-native";
 import * as Browser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useState } from "react";
 
+
 export default function App() {
 	const [currentUser, setCurrentUser] = useState<User | null>(null);
 
+
 	const signIn = async () => {
+    console.log("sign in")
+
+
+
+const redirectUri = Linking.createURL("login").replace('///', '//');
+console.log({redirectUri})
 		const result = await Browser.openAuthSessionAsync(
-			"http://localhost:3000/login/github",
-			"exp://192.168.2.100:8081/login"
+			"http://10.20.1.34:3000/login/github",
+      "com.anonymous.luciatestyama:/login"
 		);
+    console.log(result)
 		if (result.type !== "success") return;
 		const url = Linking.parse(result.url);
 		const sessionToken = url.queryParams?.session_token?.toString() ?? null;
+    console.log({sessionToken})
 		if (!sessionToken) return;
 		const user = await getUser(sessionToken);
 		await SecureStore.setItemAsync("session_token", sessionToken);
@@ -26,7 +36,7 @@ export default function App() {
 
 	const signOut = async () => {
 		const sessionToken = await SecureStore.getItemAsync("session_token");
-		const response = await fetch("http://localhost:3000/logout", {
+		const response = await fetch("http://10.20.1.34:3000/logout", {
 			method: "POST",
 			headers: {
 				Authorization: `Bearer ${sessionToken}`
@@ -70,7 +80,7 @@ export default function App() {
 }
 
 const getUser = async (sessionToken: string): Promise<User | null> => {
-	const response = await fetch("http://localhost:3000/user", {
+	const response = await fetch("http://10.20.1.34:3000/user", {
 		headers: {
 			Authorization: `Bearer ${sessionToken}`
 		}
