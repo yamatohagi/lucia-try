@@ -56,7 +56,7 @@ app.get("/login/github/callback", async (c) => {
 		});
 		return c.redirect(
 			// change this part before starting your server
-			`exp://10.20.1.34:8081/login?session_token=${session.sessionId}`
+			`com.anonymous.luciatestyama:/login?session_token=${session.sessionId}`
 		);
 	} catch (e) {
 		console.log(e);
