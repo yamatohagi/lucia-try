@@ -44,3 +44,8 @@ GITHUB_CLIENT_SECRET=""
 | ---------- | -------- |
 | `id`       | `string` |
 | `username` | `string` |
+
+
+
+$HOME/.config/fish/config.fishに
+set -gx ANDROID_HOME /Users/yamatohagi/Library/Android/sdk
