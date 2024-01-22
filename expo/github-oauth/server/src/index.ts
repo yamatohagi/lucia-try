@@ -1,7 +1,7 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
-import { auth, githubAuth } from "./auth";
+import { auth, githubAuth, googleAuth } from "./auth";
 import { OAuthRequestError } from "@lucia-auth/oauth";
 
 const app = new Hono();
@@ -27,6 +27,64 @@ app.get("/login/github", async (c) => {
 	console.log("redirect_uri", redirect_uri);
 	//	return c.redirect(`${authorizationUrl.toString()}?redirect_uri=${redirect_uri}`);
 	return c.redirect(authorizationUrl.toString());
+});
+app.get("/login/google", async (c) => {
+	const [authorizationUrl, state] = await googleAuth.getAuthorizationUrl();
+
+	setCookie(c, "google_oauth_state", state, {
+		path: "/",
+		maxAge: 60 * 10,
+		httpOnly: true,
+		secure: process.env.NODE_ENV === "production"
+	});
+	return c.redirect(authorizationUrl.toString());
+});
+
+app.get("/login/google/callback", async (c) => {
+	console.log("/login/google/callback");
+	const url = new URL(c.req.url);
+	const code = url.searchParams.get("code");
+	const state = url.searchParams.get("state");
+	const storedState = getCookie(c, "google_oauth_state");
+	console.log("return c.redirect(", {
+		url,
+		code,
+		state,
+		storedState
+	});
+	console.log({
+		code: !code,
+		state: !state,
+		storedState: !storedState,
+		"state !== storedState": state !== storedState
+	});
+	if (!code || !state || !storedState || state !== storedState) {
+		return c.newResponse(null, 400);
+	}
+
+	try {
+		const { getExistingUser, googleUser, createUser } =
+			await googleAuth.validateCallback(code);
+		let user = await getExistingUser();
+		if (!user) {
+			user = await createUser({
+				attributes: {
+					username: googleUser.name
+				}
+			});
+		}
+		const session = await auth.createSession({
+			userId: user.userId,
+			attributes: {}
+		});
+
+		return c.redirect(
+			`com.anonymous.luciatestyama:/login?session_token=${session.sessionId}`
+		);
+	} catch (e) {
+		console.log(e);
+		return c.newResponse(null, 500);
+	}
 });
 
 app.get("/login/github/callback", async (c) => {

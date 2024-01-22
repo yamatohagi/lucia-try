@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { google } from "@lucia-auth/oauth/providers";
 
 dotenv.config();
 
@@ -35,3 +36,11 @@ export const githubAuth = github(auth, {
 	clientId: process.env.GITHUB_CLIENT_ID ?? "",
 	clientSecret: process.env.GITHUB_CLIENT_SECRET ?? ""
 });
+
+
+
+export const googleAuth = google(auth, {
+  clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+  redirectUri: process.env.GOOGLE_REDIRECT_URI ?? "",
+})

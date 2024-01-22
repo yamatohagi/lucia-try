@@ -18,7 +18,7 @@ export default function App() {
 const redirectUri = Linking.createURL("login").replace('///', '//');
 console.log({redirectUri})
 		const result = await Browser.openAuthSessionAsync(
-			"http://10.20.1.34:3000/login/github",
+			"http://localhost:3000/login/github",
       "com.anonymous.luciatestyama:/login"
 		);
     console.log(result)
@@ -34,9 +34,30 @@ console.log({redirectUri})
 	};
 
 
+  //googleの場合
+  const signInGoogle = async () => {
+    console.log("sign in")
+
+    const result = await Browser.openAuthSessionAsync(
+      "http://localhost:3000/login/google",
+      "com.anonymous.luciatestyama:/login"
+    );
+    console.log(result)
+    if (result.type !== "success") return;
+    const url = Linking.parse(result.url);
+    const sessionToken = url.queryParams?.session_token?.toString() ?? null;
+    console.log({sessionToken})
+    if (!sessionToken) return;
+    const user = await getUser(sessionToken);
+    await SecureStore.setItemAsync("session_token", sessionToken);
+    console.log(user)
+    setCurrentUser(user);
+  }
+
+
 	const signOut = async () => {
 		const sessionToken = await SecureStore.getItemAsync("session_token");
-		const response = await fetch("http://10.20.1.34:3000/logout", {
+		const response = await fetch("http://localhost:3000/logout", {
 			method: "POST",
 			headers: {
 				Authorization: `Bearer ${sessionToken}`
@@ -72,6 +93,7 @@ console.log({redirectUri})
 			<Text style={{ fontFamily: "Courier New", fontSize: 16 }}>
 				{currentUser ? JSON.stringify(currentUser, null, 2) : "(none)"}
 			</Text>
+      <Button title="Sign in with Google" onPress={signInGoogle} />
 			<Button title="Sign in with Github" onPress={signIn} />
 			<Button title="Sign out" onPress={signOut} />
 			<StatusBar style="auto" />
@@ -80,7 +102,7 @@ console.log({redirectUri})
 }
 
 const getUser = async (sessionToken: string): Promise<User | null> => {
-	const response = await fetch("http://10.20.1.34:3000/user", {
+	const response = await fetch("http://localhost:3000/user", {
 		headers: {
 			Authorization: `Bearer ${sessionToken}`
 		}
