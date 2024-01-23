@@ -49,3 +49,4 @@ GITHUB_CLIENT_SECRET=""
 
 $HOME/.config/fish/config.fishに
 set -gx ANDROID_HOME /Users/yamatohagi/Library/Android/sdk
+npx expo run:android
